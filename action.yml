@@ -13,7 +13,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Allure Report action from marketplace
+    - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.6
       with:
         allure_results: allure-results
