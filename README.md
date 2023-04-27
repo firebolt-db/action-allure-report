@@ -1,5 +1,7 @@
 # action-allure-report
-GH Action to create Allure report on tests
+GH Action to create Allure report on tests.
+
+This action requires github pages to be enabled.
 
 ## Inputs
 
