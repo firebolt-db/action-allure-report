@@ -8,14 +8,17 @@ GH Action to create Allure report on tests
 
 ### test-type
 Optional: Type of the test to distinguish when reporting. Integration or unit.
+
 Default: unit
 
 ### allure-dir
 Optional: Directory where allure report lives.
+
 Default: allure-results
 
 ### pages-branch
 Optional: Branch where GitHub Pages is deployed.
+
 Default: gh-pages
 
 ## Example usage
