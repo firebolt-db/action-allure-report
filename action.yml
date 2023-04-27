@@ -9,14 +9,22 @@ inputs:
     description: 'Integration or unit'
     default: 'unit'
     required: false
-    
+  allure-dir:
+    description: 'Directory where allure report lives'
+    default: 'allure-results'
+    required: false
+  pages-branch:
+    description: 'Github Pages branch'
+    default: 'gh-pages'
+    required: false
+
 runs:
   using: "composite"
   steps:
     - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.6
       with:
-        allure_results: allure-results
+        allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
         subfolder: ${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
         keep_reports: 20
@@ -25,7 +33,7 @@ runs:
       uses: peaceiris/actions-gh-pages@v2
       env:
         PERSONAL_TOKEN: ${{ inputs.github-key }}
-        PUBLISH_BRANCH: gh-pages
+        PUBLISH_BRANCH: ${{ inputs.pages-branch }}
         PUBLISH_DIR: allure-history
         
     - name: Post the link to the report
