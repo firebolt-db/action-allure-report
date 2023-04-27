@@ -1,0 +1,38 @@
+name: Allure test report
+description: Create Github Pages hosted allure report
+
+inputs:
+  github-key:
+    description: 'Github token'
+    required: true
+  test-type:
+    description: 'Integration or unit'
+    default: 'unit'
+    required: false
+    
+runs:
+  using: "composite"
+  steps:
+    - name: Allure Report action from marketplace
+      uses: simple-elf/allure-report-action@v1.6
+      with:
+        allure_results: allure-results
+        allure_history: allure-history
+        subfolder: ${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+        keep_reports: 20
+
+    - name: Deploy report to Github Pages
+      uses: peaceiris/actions-gh-pages@v2
+      env:
+        PERSONAL_TOKEN: ${{ inputs.github-key }}
+        PUBLISH_BRANCH: gh-pages
+        PUBLISH_DIR: allure-history
+        
+    - name: Post the link to the report
+      uses: Sibz/github-status-action@v1
+      with:
+          authToken: ${{ inputs.github-key }}
+          context: ${{ inputs.test-type }} test report
+          state: 'success'
+          sha: ${{ github.event.pull_request.head.sha  || github.sha }}
+          target_url: https://docs.firebolt.io/firebolt-python-sdk/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
