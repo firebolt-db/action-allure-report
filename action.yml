@@ -21,6 +21,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: GEt repo name
+      shell: bash
+      run: |
+        echo "Repo: ${GITHUB_REPOSITORY#*/}"
+        
     - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.6
       with:
