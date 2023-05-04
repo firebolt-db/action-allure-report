@@ -24,7 +24,7 @@ runs:
     - name: GEt repo name
       shell: bash
       run: |
-        echo "Repo: ${GITHUB_REPOSITORY#*/}"
+        echo "echo ::set-env gh_repo=GHA_BRANCH::${GITHUB_REPOSITORY#*/}"
         
     - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.6
@@ -48,4 +48,4 @@ runs:
           context: ${{ inputs.test-type }} test report
           state: 'success'
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: https://docs.firebolt.io/${GITHUB_REPOSITORY#*/}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: https://docs.firebolt.io/${{ env.gh_repo }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
