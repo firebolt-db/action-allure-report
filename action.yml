@@ -21,6 +21,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Get repo name for URL
+      shell: bash
+      run: |
+        echo "GH_REPO=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+        
     - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.6
       with:
@@ -43,4 +48,4 @@ runs:
           context: ${{ inputs.test-type }} test report
           state: 'success'
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: https://docs.firebolt.io/firebolt-python-sdk/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
