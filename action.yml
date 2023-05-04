@@ -48,4 +48,4 @@ runs:
           context: ${{ inputs.test-type }} test report
           state: 'success'
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: https://docs.firebolt.io/${{ env.gh_repo }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
