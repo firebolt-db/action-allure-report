@@ -42,10 +42,11 @@ runs:
         PUBLISH_DIR: allure-history
         
     - name: Post the link to the report
+      if: always()
       uses: Sibz/github-status-action@v1
       with:
           authToken: ${{ inputs.github-key }}
-          context: ${{ inputs.test-type }} test report
-          state: 'success'
+          context: ${{ inputs.test-type }} test result
+          state: ${{ job.status }}
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
           target_url: https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
