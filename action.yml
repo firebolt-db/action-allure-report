@@ -25,25 +25,25 @@ runs:
       shell: bash
       run: |
         echo "GH_REPO=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
-        
+
     - name: Run Allure action
-      uses: simple-elf/allure-report-action@v1.6
+      uses: simple-elf/allure-report-action@v1.9
       with:
         allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
         subfolder: ${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
-        keep_reports: 20
+        keep_reports: 5
 
     - name: Deploy report to Github Pages
-      uses: peaceiris/actions-gh-pages@v2
+      uses: peaceiris/actions-gh-pages@v4
       env:
         PERSONAL_TOKEN: ${{ inputs.github-key }}
         PUBLISH_BRANCH: ${{ inputs.pages-branch }}
         PUBLISH_DIR: allure-history
-        
+
     - name: Post the link to the report
       if: always()
-      uses: Sibz/github-status-action@v1
+      uses: guibranco/github-status-action-v2@v1.1.13
       with:
           authToken: ${{ inputs.github-key }}
           context: ${{ inputs.test-type }} test result
