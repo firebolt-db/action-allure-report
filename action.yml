@@ -50,3 +50,10 @@ runs:
           state: ${{ job.status }}
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
           target_url: https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+
+    - name: Set Job Summary
+      if: always()
+      shell: bash
+      run: |
+        url="https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
+        echo "### ${{ github.repository  }} tested! Report: $url" >> $GITHUB_STEP_SUMMARY
