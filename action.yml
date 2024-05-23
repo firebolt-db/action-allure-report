@@ -32,7 +32,7 @@ runs:
         allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
         subfolder: ${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
-        keep_reports: 5
+        keep_reports: 10
 
     - name: Deploy report to Github Pages
       uses: peaceiris/actions-gh-pages@v4
@@ -56,4 +56,4 @@ runs:
       shell: bash
       run: |
         url="https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
-        echo "### ${{ github.repository  }} tested! Report: $url" >> $GITHUB_STEP_SUMMARY
+        echo "#### ${{ env.GH_REPO }} [Report]($url)" >> $GITHUB_STEP_SUMMARY
