@@ -36,10 +36,10 @@ runs:
 
     - name: Deploy report to Github Pages
       uses: peaceiris/actions-gh-pages@v4
-      env:
-        PERSONAL_TOKEN: ${{ inputs.github-key }}
-        PUBLISH_BRANCH: ${{ inputs.pages-branch }}
-        PUBLISH_DIR: allure-history
+      with:
+        github_token: ${{ inputs.github-key }}
+        publish_branch: ${{ inputs.pages-branch }}
+        publish_dir: allure-history
 
     - name: Post the link to the report
       if: always()
