@@ -26,6 +26,9 @@ runs:
       id: get_repo_url
       run: |
         base_url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+        if [[ $base_url == http:* ]]; then
+          base_url="https${base_url:4}"
+        fi
         echo "url=${base_url}" >> "$GITHUB_OUTPUT"
 
     - name: Run Allure action
