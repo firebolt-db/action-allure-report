@@ -21,10 +21,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Get repo name for URL
+    - name: Get repo URL
       shell: bash
+      id: get_repo_url
       run: |
-        echo "GH_REPO=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+        base_url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+        echo "url=${base_url}" >> "$GITHUB_OUTPUT"
 
     - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.9
@@ -49,11 +51,11 @@ runs:
           context: ${{ inputs.test-type }} test result
           state: ${{ job.status }}
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: ${{ steps.get_repo_url.outputs.url }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
 
     - name: Set Job Summary
       if: always()
       shell: bash
       run: |
-        url="https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
+        url="${{ steps.get_repo_url.outputs.url }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
         echo "#### ${{ env.GH_REPO }} [Report]($url)" >> $GITHUB_STEP_SUMMARY
