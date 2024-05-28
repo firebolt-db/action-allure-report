@@ -24,11 +24,10 @@ runs:
     - name: Get repo URL
       shell: bash
       id: get_repo_url
+      env:
+        GH_TOKEN: ${{ inputs.github-key }}
       run: |
         base_url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
-        if [[ $base_url == http:* ]]; then
-          base_url="https${base_url:4}"
-        fi
         echo "url=${base_url}" >> "$GITHUB_OUTPUT"
 
     - name: Run Allure action
