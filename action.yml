@@ -17,6 +17,9 @@ inputs:
     description: 'Github Pages branch'
     default: 'gh-pages'
     required: false
+  repository-name:
+    description: 'Repository name'
+    required: false
 
 runs:
   using: "composite"
@@ -35,7 +38,7 @@ runs:
       with:
         allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
-        subfolder: ${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+        subfolder: ${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
         keep_reports: 10
 
     - name: Deploy report to Github Pages
@@ -59,5 +62,5 @@ runs:
       if: always()
       shell: bash
       run: |
-        url="${{ steps.get_repo_url.outputs.url }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
+        url="${{ steps.get_repo_url.outputs.url }}/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
         echo "#### ${{ env.GH_REPO }} [Report]($url)" >> $GITHUB_STEP_SUMMARY
