@@ -17,29 +17,36 @@ inputs:
     description: 'Github Pages branch'
     default: 'gh-pages'
     required: false
+  repository-name:
+    description: 'Repository name'
+    required: false
 
 runs:
   using: "composite"
   steps:
-    - name: Get repo name for URL
+    - name: Get repo URL
       shell: bash
+      id: get_repo_url
+      env:
+        GH_TOKEN: ${{ inputs.github-key }}
       run: |
-        echo "GH_REPO=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+        base_url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
+        echo "url=${base_url}" >> "$GITHUB_OUTPUT"
 
     - name: Run Allure action
       uses: simple-elf/allure-report-action@v1.9
       with:
         allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
-        subfolder: ${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
-        keep_reports: 5
+        subfolder: ${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+        keep_reports: 10
 
     - name: Deploy report to Github Pages
       uses: peaceiris/actions-gh-pages@v4
-      env:
-        PERSONAL_TOKEN: ${{ inputs.github-key }}
-        PUBLISH_BRANCH: ${{ inputs.pages-branch }}
-        PUBLISH_DIR: allure-history
+      with:
+        github_token: ${{ inputs.github-key }}
+        publish_branch: ${{ inputs.pages-branch }}
+        publish_dir: allure-history
 
     - name: Post the link to the report
       if: always()
@@ -49,4 +56,11 @@ runs:
           context: ${{ inputs.test-type }} test result
           state: ${{ job.status }}
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: https://docs.firebolt.io/${{ env.GH_REPO }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: ${{ steps.get_repo_url.outputs.url }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+
+    - name: Set Job Summary
+      if: always()
+      shell: bash
+      run: |
+        url="${{ steps.get_repo_url.outputs.url }}/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
+        echo "#### ${{ env.GH_REPO }} [Report]($url)" >> $GITHUB_STEP_SUMMARY
