@@ -56,7 +56,7 @@ runs:
           context: ${{ inputs.test-type }} test result
           state: ${{ job.status }}
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: ${{ steps.get_repo_url.outputs.url }}/${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: ${{ steps.get_repo_url.outputs.url }}/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
 
     - name: Set Job Summary
       if: always()
