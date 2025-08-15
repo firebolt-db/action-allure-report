@@ -51,7 +51,6 @@ runs:
         github_token: ${{ inputs.github-key }}
         publish_branch: ${{ inputs.pages-branch }}
         publish_dir: allure-history
-        destination_dir: allure
         keep_files: ${{ inputs.keep-files }}
 
     - name: Post the link to the report
