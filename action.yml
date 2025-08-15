@@ -51,6 +51,7 @@ runs:
         github_token: ${{ inputs.github-key }}
         publish_branch: ${{ inputs.pages-branch }}
         publish_dir: allure-history
+        destination_dir: allure
         keep_files: ${{ inputs.keep-files }}
 
     - name: Post the link to the report
@@ -67,5 +68,5 @@ runs:
       if: always()
       shell: bash
       run: |
-        url="${{ steps.get_repo_url.outputs.url }}/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
+        url="${{ steps.get_repo_url.outputs.url }}/allure/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}"
         echo "#### ${{ env.GH_REPO }} [Report]($url)" >> $GITHUB_STEP_SUMMARY
