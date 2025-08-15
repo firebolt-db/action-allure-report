@@ -20,6 +20,10 @@ inputs:
   repository-name:
     description: 'Repository name'
     required: false
+  keep-files:
+    description: 'Do not overwrite exsiting files in pages'
+    default: false
+    required: false
 
 runs:
   using: "composite"
@@ -47,6 +51,7 @@ runs:
         github_token: ${{ inputs.github-key }}
         publish_branch: ${{ inputs.pages-branch }}
         publish_dir: allure-history
+        keep_files: ${{ inputs.keep-files }}
 
     - name: Post the link to the report
       if: always()
