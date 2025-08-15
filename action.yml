@@ -42,7 +42,7 @@ runs:
       with:
         allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
-        subfolder: ${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+        subfolder: allure/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
         keep_reports: 10
 
     - name: Deploy report to Github Pages
@@ -62,7 +62,7 @@ runs:
           context: ${{ inputs.test-type }} test result
           state: ${{ job.status }}
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: ${{ steps.get_repo_url.outputs.url }}/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
+          target_url: ${{ steps.get_repo_url.outputs.url }}/allure/${{ inputs.repository-name }}_${{ github.event.pull_request.head.sha  || github.sha }}_${{ inputs.test-type }}
 
     - name: Set Job Summary
       if: always()
