@@ -38,7 +38,7 @@ runs:
         echo "url=${base_url}" >> "$GITHUB_OUTPUT"
 
     - name: Run Allure action
-      uses: simple-elf/allure-report-action@v1.9
+      uses: simple-elf/allure-report-action@v1.13
       with:
         allure_results: ${{ inputs.allure-dir }}
         allure_history: allure-history
