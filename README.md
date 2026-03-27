@@ -3,25 +3,40 @@ GH Action to create Allure report on tests.
 
 This action requires github pages to be enabled.
 
+## v2
+- added support for upload of multiple reports within one job
+
 ## Inputs
 
-### github-key
+### github-token
 **Required:**  [Github token](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
 
-### test-type
-Optional: Type of the test to distinguish when reporting. Integration or unit.
+### mapping-json
+**Required**: Mapping of source where allure test results were written and unique, URL friendly description
 
-Default: unit
+Example:
+```yaml
+mapping-json: |
+  {
+      "allure-results-unit": "unit_tests",
+      "allure-results-integration": "integration_tests"
+  }
+```
 
-### allure-dir
-Optional: Directory where allure report lives.
+### allure-version
+Optional: Version of Allure to be installed
 
-Default: allure-results
+Default: `2.38.1`
 
 ### pages-branch
 Optional: Branch where GitHub Pages is deployed.
 
 Default: gh-pages
+
+### report-path
+Optional: Path under which the report will be published.
+
+Default: `allure/<repo-name>_<sha>`
 
 ## Example usage
 
@@ -35,22 +50,15 @@ In the following example adding `--alluredir=allure-results` enables Allure repo
     run: |
     pytest tests/unit --alluredir=allure-results
 
-# Need to pull the pages branch in order to fetch the previous runs
-- name: Get Allure history
-    uses: actions/checkout@v2
-    if: always() # Needed in order to report failed tests
-    continue-on-error: true
-    with:
-        ref: gh-pages
-        path: gh-pages
-
 - name: Allure Report
-    uses: firebolt-db/action-allure-report@main
+    uses: firebolt-db/action-allure-report@v2
     if: always() # Needed in order to report failed tests
     with:
-        github-key: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         # The rest of the inputs are optional
-        test-type: Unit
-        allure-dir: allure-results
-        paged-branch: gh-pages
+        pages-branch: gh-pages
+        mapping-json: |
+            {
+                "allure-results": "unit_tests"
+            }
 ```
