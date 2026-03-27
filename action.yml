@@ -135,8 +135,8 @@ runs:
               -d "{
                 \"state\": \"$STATE\",
                 \"target_url\": \"$url\",
-                \"description\": \"Firebolt Core Test Result ($name)\",
-                \"context\": \"integration-tests-core ($name)\"
+                \"description\": \"Click to access Allure report\",
+                \"context\": \"Test Results ($name)\"
               }"
           done
 
