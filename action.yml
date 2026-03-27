@@ -95,7 +95,7 @@ runs:
           echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
 
       - name: Deploy all reports to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         id: deploy-reports
         if: always() && steps.generate-reports.outcome == 'success' && steps.generate-reports.outputs.urls != '{}'
         with:
