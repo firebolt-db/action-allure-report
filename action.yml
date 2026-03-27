@@ -95,14 +95,14 @@ runs:
           echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
 
       - name: Deploy all reports to GitHub Pages
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
+        uses: JamesIves/github-pages-deploy-action@v4
         id: deploy-reports
         if: always() && steps.generate-reports.outcome == 'success' && steps.generate-reports.outputs.urls != '{}'
         with:
-          github_token: ${{ inputs.github-token }}
-          publish_branch: ${{ inputs.pages-branch }}
-          publish_dir: ./allure-final
-          keep_files: true
+          attempt-limit: 3
+          branch: ${{ inputs.pages-branch }}
+          folder: ./allure-final
+          force: false
 
       - name: Update PR Status
         if: always()
