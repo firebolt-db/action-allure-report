@@ -1,21 +1,24 @@
 name: Move Major Release Tag
 
 on:
+  workflow_dispatch:
   release:
     types: [created]
 
 jobs:
   movetag:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Get major version num and update tag
       run: |
         VERSION=${GITHUB_REF#refs/tags/}
         MAJOR=${VERSION%%.*}
         git config --global user.name 'Release Bot'
-        git config --global user.email 'petro.tiurin@firebolt.io'
+        git config --global user.email 'release-bot@firebolt.io'
         git tag -fa ${MAJOR} -m "Update major version tag"
         git push origin ${MAJOR} --force
