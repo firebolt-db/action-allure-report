@@ -95,6 +95,7 @@ runs:
           echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
 
       - name: Deploy all reports to GitHub Pages
+        id: deploy-reports
         shell: bash
         env:
           PAGES_BRANCH: ${{ inputs.pages-branch }}
@@ -103,17 +104,14 @@ runs:
           GH_TOKEN: ${{ inputs.github-token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          mkdir temp-deploy
-          git clone --single-branch --branch "$PAGES_BRANCH" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" temp-deploy
-
-          cp -rv $REPORT_FOLDER/* temp-deploy/
-
-          cd temp-deploy
+          cd "$PAGES_BRANCH"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git config merge.renamelimit 0
           git config diff.renames false
+
+          cp -rv ../$REPORT_FOLDER/* .
 
           git add .
 
@@ -126,8 +124,9 @@ runs:
 
           ATTEMPT=1
           SLEEP_TIME=2
+          PUSH_URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
 
-          until git pull --rebase -X ours origin "$PAGES_BRANCH"; do
+          until git pull --rebase -X ours "$PUSH_URL" "$PAGES_BRANCH"; do
             if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
               echo "Error: Max retries ($MAX_ATTEMPTS) reached after rebase conflicts."
               exit 1
@@ -142,10 +141,10 @@ runs:
             ATTEMPT=$((ATTEMPT + 1))
 
             # Fetch latest changes again before retrying
-            git fetch origin "$PAGES_BRANCH"
+            git fetch "$PUSH_URL" "$PAGES_BRANCH"
           done
 
-          git push origin "$PAGES_BRANCH"
+          git push "$PUSH_URL" "$PAGES_BRANCH"
 
       - name: Update PR Status
         if: always()
