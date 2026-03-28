@@ -94,24 +94,58 @@ runs:
           done
           echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
 
-      # We disable git rename detection because if other allure reports get uploaded first and
-      # we have to rebase in JamesIves/github-pages-deploy-action they are detected as the same files.
-      - name: Disable Git Rename Detection
-        shell: bash
-        run: |
-          git config --global merge.renamelimit 0
-          git config --global diff.renames false
-
       - name: Deploy all reports to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
-        id: deploy-reports
-        if: always() && steps.generate-reports.outcome == 'success' && steps.generate-reports.outputs.urls != '{}'
-        with:
-          attempt-limit: 3
-          branch: ${{ inputs.pages-branch }}
-          folder: ./allure-final
-          force: false
-          clean: false
+        shell: bash
+        env:
+          PAGES_BRANCH: ${{ inputs.pages-branch }}
+          REPORT_FOLDER: ./allure-final
+          MAX_ATTEMPTS: 5
+          GH_TOKEN: ${{ inputs.github-token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git config merge.renamelimit 0
+          git config diff.renames false
+
+          mkdir temp-deploy
+          git clone --single-branch --branch $PAGES_BRANCH https://x-access-token:${GH_TOKEN}@://github.com{{ github.repository }}.git temp-deploy
+
+          cp -rv $REPORT_FOLDER/* temp-deploy/
+
+          cd temp-deploy
+          git add .
+
+          if git diff-index --quiet HEAD; then
+            echo "Skipping. No new report changes found."
+            exit 0
+          fi
+
+          git commit -m "chore: deploy Allure report: ${SHA}"
+
+          ATTEMPT=1
+          SLEEP_TIME=2
+
+          until git pull --rebase -X ours origin $PAGES_BRANCH; do
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+              echo "Error: Max retries ($MAX_ATTEMPTS) reached after rebase conflicts."
+              exit 1
+            fi
+
+            echo "Conflict during rebase. Retrying $ATTEMPT/$MAX_ATTEMPTS..."
+            git rebase --abort || true
+
+            # Wait (Exponential Backoff)
+            sleep $SLEEP_TIME
+            SLEEP_TIME=$((SLEEP_TIME * 2))
+            ATTEMPT=$((ATTEMPT + 1))
+
+            # Fetch latest changes again before retrying
+            git fetch origin $PAGES_BRANCH
+          done
+
+          git push origin $PAGES_BRANCH
 
       - name: Update PR Status
         if: always()
