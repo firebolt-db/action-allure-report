@@ -111,6 +111,7 @@ runs:
           branch: ${{ inputs.pages-branch }}
           folder: ./allure-final
           force: false
+          clean: false
 
       - name: Update PR Status
         if: always()
