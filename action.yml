@@ -94,6 +94,14 @@ runs:
           done
           echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
 
+      # We disable git rename detection because if other allure reports get uploaded first and
+      # we have to rebase in JamesIves/github-pages-deploy-action they are detected as the same files.
+      - name: Disable Git Rename Detection
+        shell: bash
+        run: |
+          git config --global merge.renamelimit 0
+          git config --global diff.renames false
+
       - name: Deploy all reports to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         id: deploy-reports
