@@ -110,7 +110,7 @@ runs:
           git config diff.renames false
 
           mkdir temp-deploy
-          git clone --single-branch --branch $PAGES_BRANCH https://x-access-token:${GH_TOKEN}@://github.com{{ github.repository }}.git temp-deploy
+          git clone --single-branch --branch "$PAGES_BRANCH" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" temp-deploy
 
           cp -rv $REPORT_FOLDER/* temp-deploy/
 
@@ -127,7 +127,7 @@ runs:
           ATTEMPT=1
           SLEEP_TIME=2
 
-          until git pull --rebase -X ours origin $PAGES_BRANCH; do
+          until git pull --rebase -X ours origin "$PAGES_BRANCH"; do
             if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
               echo "Error: Max retries ($MAX_ATTEMPTS) reached after rebase conflicts."
               exit 1
@@ -142,10 +142,10 @@ runs:
             ATTEMPT=$((ATTEMPT + 1))
 
             # Fetch latest changes again before retrying
-            git fetch origin $PAGES_BRANCH
+            git fetch origin "$PAGES_BRANCH"
           done
 
-          git push origin $PAGES_BRANCH
+          git push origin "$PAGES_BRANCH"
 
       - name: Update PR Status
         if: always()
