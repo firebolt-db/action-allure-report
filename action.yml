@@ -51,20 +51,9 @@ runs:
         id: get_repo_vars
         env:
           GH_TOKEN: ${{ inputs.github-token }}
-          GITHUB_SHA: ${{ github.sha }}
           PROVIDED_REPORT_PATH: ${{ inputs.report-path }}
         shell: bash
-        run: |
-          base_url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
-          repository_name=$(echo $GITHUB_REPOSITORY | cut -d '/' -f 2)
-          echo "repo_url=${base_url}" >> "$GITHUB_OUTPUT"
-          echo "repo_name=${repository_name}" >> "$GITHUB_OUTPUT"
-
-          if [ -z "${PROVIDED_REPORT_PATH}" ]; then
-            echo "report_path=allure/${repository_name}_${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-          else
-            echo "report_path=${PROVIDED_REPORT_PATH}" >> "$GITHUB_OUTPUT"
-          fi
+        run: ${{ github.action_path }}/scripts/get-repo-vars.sh
 
       - name: Generate All Reports Locally
         id: generate-reports
@@ -76,23 +65,7 @@ runs:
           REPORT_URL_BASE: "${{ steps.get_repo_vars.outputs.repo_url }}${{ steps.get_repo_vars.outputs.report_path }}"
           MAPPING_JSON: ${{ inputs.mapping-json }}
         shell: bash
-        run: |
-          # Create a temp file to store URLs
-          echo "{}" > urls.json
-
-          echo "$MAPPING_JSON" | jq -r 'to_entries | .[] | "\(.key) \(.value)"' | while read -r src suffix; do
-            if [ -d "$src" ]; then
-              echo "Generating report: $src -> ${REPORT_DEST_BASE}_${suffix}"
-              allure generate "$src" -o "${REPORT_DEST_BASE}_${suffix}"
-
-              # Build URL and update the temp JSON file
-              FINAL_URL="${REPORT_URL_BASE}_${suffix}"
-              jq --arg k "$suffix" --arg v "$FINAL_URL" '. + {($k): $v}' urls.json > urls.tmp && mv urls.tmp urls.json
-            else
-              echo "⚠️ Skipping: Directory '$src' not found."
-            fi
-          done
-          echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
+        run: ${{ github.action_path }}/scripts/generate-reports.sh
 
       - name: Deploy all reports to GitHub Pages
         id: deploy-reports
@@ -103,92 +76,21 @@ runs:
           MAX_ATTEMPTS: 5
           GH_TOKEN: ${{ inputs.github-token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          cd "$PAGES_BRANCH"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git config merge.renamelimit 0
-          git config diff.renames false
-
-          cp -rv ../$REPORT_FOLDER/* .
-
-          git add .
-
-          if git diff-index --quiet HEAD; then
-            echo "Skipping. No new report changes found."
-            exit 0
-          fi
-
-          git commit -m "chore: deploy Allure report: ${SHA}"
-
-          ATTEMPT=1
-          SLEEP_TIME=2
-          PUSH_URL="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-
-          until git pull --rebase -X ours "$PUSH_URL" "$PAGES_BRANCH"; do
-            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-              echo "Error: Max retries ($MAX_ATTEMPTS) reached after rebase conflicts."
-              exit 1
-            fi
-
-            echo "Conflict during rebase. Retrying $ATTEMPT/$MAX_ATTEMPTS..."
-            git rebase --abort || true
-
-            # Wait (Exponential Backoff)
-            sleep $SLEEP_TIME
-            SLEEP_TIME=$((SLEEP_TIME * 2))
-            ATTEMPT=$((ATTEMPT + 1))
-
-            # Fetch latest changes again before retrying
-            git fetch "$PUSH_URL" "$PAGES_BRANCH"
-          done
-
-          git push "$PUSH_URL" "$PAGES_BRANCH"
+        run: ${{ github.action_path }}/scripts/deploy-reports.sh
 
       - name: Update PR Status
         if: always()
         env:
           GH_TOKEN: ${{ inputs.github-token }}
           URLS_JSON: ${{ steps.generate-reports.outputs.urls || '{}'}}
-          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           JOB_STATUS: ${{ job.status }}
           API_URL: "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha || github.sha }}"
         shell: bash
-        run: |
-          # Map job status to GitHub Status API state
-          case "${JOB_STATUS}" in
-            success) STATE="success" ;;
-            failure) STATE="failure" ;;
-            cancelled) STATE="error" ;;
-            *) STATE="error" ;;
-          esac
-
-          # Parse the JSON output and loop through each name/url pair
-          echo "$URLS_JSON" | jq -r 'to_entries | .[] | "\(.key) \(.value)"' | while read -r name url; do
-            echo "Setting status for $name..."
-
-            curl -fsSL \
-              -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "$API_URL" \
-              -d "{
-                \"state\": \"$STATE\",
-                \"target_url\": \"$url\",
-                \"description\": \"Click to access Allure report\",
-                \"context\": \"Test Results ($name)\"
-              }"
-          done
+        run: ${{ github.action_path }}/scripts/update-pr-status.sh
 
       - name: Set Job Summary
         if: always() && steps.deploy-reports.outcome == 'success'
         env:
           URLS_JSON: ${{ steps.generate-reports.outputs.urls || '{}'}}
         shell: bash
-        run: |
-          echo "### Test Reports" >> $GITHUB_STEP_SUMMARY
-          echo "$URLS_JSON" | jq -r 'to_entries | .[] | "\(.key) \(.value)"' | while read -r name url; do
-            echo "* [Report: $name]($url)" >> $GITHUB_STEP_SUMMARY
-          done
+        run: ${{ github.action_path }}/scripts/set-job-summary.sh
