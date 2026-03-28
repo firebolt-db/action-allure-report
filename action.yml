@@ -103,18 +103,18 @@ runs:
           GH_TOKEN: ${{ inputs.github-token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git config merge.renamelimit 0
-          git config diff.renames false
-
           mkdir temp-deploy
           git clone --single-branch --branch "$PAGES_BRANCH" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" temp-deploy
 
           cp -rv $REPORT_FOLDER/* temp-deploy/
 
           cd temp-deploy
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git config merge.renamelimit 0
+          git config diff.renames false
+
           git add .
 
           if git diff-index --quiet HEAD; then
