@@ -10,15 +10,18 @@ on:
   release:
     types: [created]
 
+permissions: {}
+
 jobs:
   movetag:
     runs-on: ubuntu-slim
     permissions:
-      contents: write
+      contents: write # moves the major version tag
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
+        # The next step pushes the moved major version tag.
         persist-credentials: true
 
     - name: Get major version num and update tag
@@ -26,8 +29,8 @@ jobs:
       env:
         PROVIDED_TAG: ${{ inputs.tag }}
       run: |
-        if [ ! -z ${PROVIDED_TAG} ]; then
-          VERSION=${PROVIDED_TAG}
+        if [ -n "${PROVIDED_TAG}" ]; then
+          VERSION="${PROVIDED_TAG}"
         else
           VERSION=${GITHUB_REF#refs/tags/}
         fi
@@ -35,5 +38,5 @@ jobs:
         MAJOR=${VERSION%%.*}
         git config --global user.name 'Release Bot'
         git config --global user.email 'release-bot@firebolt.io'
-        git tag -fa ${MAJOR} -m "Update major version tag"
-        git push origin ${MAJOR} --force
+        git tag -fa "${MAJOR}" -m "Update major version tag"
+        git push origin "${MAJOR}" --force
