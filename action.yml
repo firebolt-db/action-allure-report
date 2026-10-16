@@ -30,7 +30,7 @@ runs:
   steps:
       # Need to pull the pages branch in order to fetch the previous runs
       - name: Get Allure history
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: always()
         continue-on-error: true
         with:
@@ -45,7 +45,7 @@ runs:
           ALLURE_VERSION: ${{ inputs.allure-version }}
         shell: bash
         run: |
-          npm install -g allure-commandline@${ALLURE_VERSION}
+          npm install -g "allure-commandline@${ALLURE_VERSION}"
 
       - name: Get repo gh-pages URL
         id: get_repo_vars
@@ -53,7 +53,7 @@ runs:
           GH_TOKEN: ${{ inputs.github-token }}
           PROVIDED_REPORT_PATH: ${{ inputs.report-path }}
         shell: bash
-        run: ${{ github.action_path }}/scripts/get-repo-vars.sh
+        run: '"$GITHUB_ACTION_PATH/scripts/get-repo-vars.sh"'
 
       - name: Generate All Reports Locally
         id: generate-reports
@@ -65,7 +65,7 @@ runs:
           REPORT_URL_BASE: "${{ steps.get_repo_vars.outputs.repo_url }}${{ steps.get_repo_vars.outputs.report_path }}"
           MAPPING_JSON: ${{ inputs.mapping-json }}
         shell: bash
-        run: ${{ github.action_path }}/scripts/generate-reports.sh
+        run: '"$GITHUB_ACTION_PATH/scripts/generate-reports.sh"'
 
       - name: Deploy all reports to GitHub Pages
         id: deploy-reports
@@ -76,7 +76,7 @@ runs:
           MAX_ATTEMPTS: 5
           GH_TOKEN: ${{ inputs.github-token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: ${{ github.action_path }}/scripts/deploy-reports.sh
+        run: '"$GITHUB_ACTION_PATH/scripts/deploy-reports.sh"'
 
       - name: Update PR Status
         if: always()
@@ -86,11 +86,11 @@ runs:
           JOB_STATUS: ${{ job.status }}
           API_URL: "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha || github.sha }}"
         shell: bash
-        run: ${{ github.action_path }}/scripts/update-pr-status.sh
+        run: '"$GITHUB_ACTION_PATH/scripts/update-pr-status.sh"'
 
       - name: Set Job Summary
         if: always() && steps.deploy-reports.outcome == 'success'
         env:
           URLS_JSON: ${{ steps.generate-reports.outputs.urls || '{}'}}
         shell: bash
-        run: ${{ github.action_path }}/scripts/set-job-summary.sh
+        run: '"$GITHUB_ACTION_PATH/scripts/set-job-summary.sh"'

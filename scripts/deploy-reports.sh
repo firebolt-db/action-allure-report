@@ -8,7 +8,7 @@ git config user.email "github-actions[bot]@users.noreply.github.com"
 git config merge.renamelimit 0
 git config diff.renames false
 
-cp -rv ../$REPORT_FOLDER/* .
+cp -rv ../"$REPORT_FOLDER"/* .
 
 git add .
 
@@ -24,7 +24,7 @@ SLEEP_TIME=2
 PUSH_URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
 until git pull --rebase -X ours "$PUSH_URL" "$PAGES_BRANCH"; do
-  if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+  if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
     echo "Error: Max retries ($MAX_ATTEMPTS) reached after rebase conflicts."
     exit 1
   fi

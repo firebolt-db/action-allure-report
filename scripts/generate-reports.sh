@@ -16,4 +16,4 @@ echo "$MAPPING_JSON" | jq -r 'to_entries | .[] | "\(.key) \(.value)"' | while re
     echo "⚠️ Skipping: Directory '$src' not found."
   fi
 done
-echo "urls=$(cat urls.json | jq -c .)" >> $GITHUB_OUTPUT
+echo "urls=$(cat urls.json | jq -c .)" >> "$GITHUB_OUTPUT"
